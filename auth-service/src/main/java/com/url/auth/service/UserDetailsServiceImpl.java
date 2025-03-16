@@ -1,7 +1,7 @@
-package com.url.shortener.service;
+package com.url.auth.service;
 
-import com.url.shortener.models.User;
-import com.url.shortener.repository.UserRepository;
+import com.url.auth.models.User;
+import com.url.auth.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

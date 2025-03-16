@@ -1,4 +1,4 @@
-package com.url.shortener.models;
+package com.url.auth.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

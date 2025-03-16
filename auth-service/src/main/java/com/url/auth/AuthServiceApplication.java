@@ -1,13 +1,15 @@
-package com.url.shortener;
+package com.url.auth;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
-public class UrlShortenerApplication {
+@EnableDiscoveryClient
+public class AuthServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UrlShortenerApplication.class, args);
+        SpringApplication.run(AuthServiceApplication.class, args);
     }
 
 }

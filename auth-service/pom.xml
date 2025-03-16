@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.url</groupId>
-	<artifactId>url-shortener</artifactId>
+	<artifactId>auth-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>url-shortener</name>
-	<description>Demo project for Spring Boot</description>
+	<name>auth-service</name>
+	<description>Auth Service for Url Shortener</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -91,6 +91,11 @@
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
 			<version>${org.mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<version>4.2.0</version>
 		</dependency>
 	</dependencies>
 

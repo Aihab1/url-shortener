@@ -1,6 +1,6 @@
-package com.url.shortener.repository;
+package com.url.auth.repository;
 
-import com.url.shortener.models.User;
+import com.url.auth.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

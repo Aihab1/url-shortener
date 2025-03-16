@@ -1,10 +1,10 @@
-package com.url.shortener.service;
+package com.url.auth.service;
 
-import com.url.shortener.dto.LoginRequest;
-import com.url.shortener.models.User;
-import com.url.shortener.repository.UserRepository;
-import com.url.shortener.security.jwt.JwtAuthenticationResponse;
-import com.url.shortener.security.jwt.JwtUtils;
+import com.url.auth.dto.LoginRequest;
+import com.url.auth.models.User;
+import com.url.auth.repository.UserRepository;
+import com.url.auth.security.jwt.JwtAuthenticationResponse;
+import com.url.auth.security.jwt.JwtUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

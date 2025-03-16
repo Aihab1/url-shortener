@@ -54,12 +54,7 @@ public class WebSecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/**", "/{shortUrl}")
-                    .permitAll()
-                    .requestMatchers("/api/urls/**")
-                    .authenticated()
-                    .anyRequest()
-                    .authenticated());
+                auth.anyRequest().permitAll());
 
     http.authenticationProvider(authenticationProvider());
     http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

@@ -1,4 +1,4 @@
-package com.url.shortener.dto;
+package com.url.auth.dto;
 
 import lombok.Data;
 

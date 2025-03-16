@@ -1,6 +1,6 @@
-package com.url.shortener.service;
+package com.url.auth.service;
 
-import com.url.shortener.models.User;
+import com.url.auth.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
