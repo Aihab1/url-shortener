@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: API-GATEWAY
+  datasource:
+    url: jdbc:mysql://localhost:3306/urlshortenerdb
+    username: root
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
   cloud:
     gateway:
       routes:
@@ -14,9 +25,24 @@ spring:
           filters:
               - StripPrefix=1
 
+        - id: url-shortening-service
+          uri: lb://URL-SHORTENING-SERVICE
+          predicates:
+            - Path=/shorten/**
+          filters:
+            - StripPrefix=1
+            - JwtAuthenticationFilter
+
+jwt:
+  secret: 789b6435dd3f4d8033e2f539e90975bbb4affe3d4d53d9d3ca1cbfbcf23e309bfaecc77147ecf75c4b6c1ebaee9496f117426f268749a7a1f3b673f7b9d44cfd
+  expiration: 172800000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.url.shortener.gateway: DEBUG
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka
-#  instance:
-#    preferIpAddress: true
