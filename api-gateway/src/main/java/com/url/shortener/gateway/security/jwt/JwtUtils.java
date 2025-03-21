@@ -1,6 +1,7 @@
 package com.url.shortener.gateway.security.jwt;
 
 import com.url.shortener.gateway.service.UserDetailsImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -9,7 +10,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import jakarta.servlet.http.HttpServletRequest;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
@@ -65,7 +65,7 @@ public class JwtUtils {
         try {
             Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(authToken);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ExpiredJwtException(null, null, "Token is expired");
         }
         return true;
     }
