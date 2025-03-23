@@ -1,20 +1,24 @@
 package com.url.redirect.service;
 
+import com.url.redirect.kafka.RedirectProducer;
 import com.url.redirect.models.UrlMapping;
 import com.url.redirect.repository.UrlMappingRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
 public class UrlMappingService {
 
     private UrlMappingRepository urlMappingRepository;
+    private RedirectProducer redirectProducer;
 
     public UrlMapping getOriginalUrl(String shortUrl) {
         UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
-        // send event to kafka to update analytics
-//        if (Objects.nonNull(urlMapping)) {
+        if (Objects.nonNull(urlMapping)) {
+            redirectProducer.sendMessage(urlMapping.getId().toString());
 //            LocalDateTime now = LocalDateTime.now();
 //
 //            urlMapping.setClickCount(urlMapping.getClickCount() + 1);
@@ -26,7 +30,7 @@ public class UrlMappingService {
 //            clickEvent.setClickDate(now);
 //            clickEvent.setUrlMapping(urlMapping);
 //            clickEventRepository.save(clickEvent);
-//        }
+        }
         return urlMapping;
     }
 }

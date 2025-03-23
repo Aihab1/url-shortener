@@ -24,4 +24,17 @@ public class UrlMapping {
 
     @OneToMany(mappedBy = "urlMapping")
     private List<ClickEvent> clickEvents;
+
+    @Override
+    public String toString() {
+        return "UrlMapping{" +
+                "id=" + id +
+                ", originalUrl='" + originalUrl + '\'' +
+                ", shortUrl='" + shortUrl + '\'' +
+                ", clickCount=" + clickCount +
+                ", createdDate=" + createdDate +
+                ", updatedDate=" + updatedDate +
+                ", user=" + user +
+                '}';
+    }
 }
