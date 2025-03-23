@@ -41,6 +41,14 @@ spring:
             - StripPrefix=1
             - JwtAuthenticationFilter
 
+        - id: analytics-service
+          uri: lb://ANALYTICS-SERVICE
+          predicates:
+            - Path=/analytics/**
+          filters:
+            - StripPrefix=1
+            - JwtAuthenticationFilter
+
 jwt:
   secret: 789b6435dd3f4d8033e2f539e90975bbb4affe3d4d53d9d3ca1cbfbcf23e309bfaecc77147ecf75c4b6c1ebaee9496f117426f268749a7a1f3b673f7b9d44cfd
   expiration: 172800000
