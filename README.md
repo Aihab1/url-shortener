@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Kafka-663399?style=for-the-badge&logo=apachekafka&logoColor=white" />
   <img src="https://img.shields.io/badge/SQL-323330?style=for-the-badge&logo=mysql&logoColor=F7DF1E" />
   <img src="https://img.shields.io/badge/Caching-1572B6?style=for-the-badge&logo=redis&logoColor=white" />
-  <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" />
+  <img src="https://img.shields.io/badge/Excalidraw-F24E1E?style=for-the-badge&logo=figma&logoColor=white" />
 </p>
 
 ## How does a URL shortener work?
@@ -53,3 +53,62 @@ The total count of short URLs is directly proportional to the length of the enco
 The time complexity of base conversion is O(k), where k is the number of characters (k = 7). The time complexity of base conversion is reduced to constant time O(1) because the number of characters is fixed.
 
 *In summary, a 7-character base62 encoded output satisfies the system requirement.*
+
+### Write path (generating a short url)
+The server shortens the long URL entered by the client. The shortened URL is encoded for improved readability. The server persists the encoded short URL into the database. The simplified block diagram of a single-machine URL shortener is the following:
+<img src="https://systemdesign.one/url-shortening-system-design/simplified-url-shortener.webp" />
+
+The single-machine solution does not meet the scalability requirements of the URL shortener system. The key generation function is moved out of the server to a dedicated Key Generation Service (KGS) to scale out the system.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-key-generation-service.webp" />
+
+The different solutions to shortening a URL are the following:
+- Random ID Generator ❌
+- Hashing Function ❌
+- Token Range ✅
+
+#### Random ID Generator
+The Key Generation Service (KGS) queries the random identifier (ID) generation service to shorten a URL. The service generates random IDs using a random function or Universally Unique Identifiers (UUID). Multiple instances of the random ID generation service must be provisioned to meet the demand for scalability.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-random-id-generator.webp" />
+
+*The random ID generation solution has the following tradeoffs:*
+- *the probability of collisions is high due to randomness*
+- *breaks the 1-to-1 mapping between a short URL and a long URL*
+- *coordination between servers is required to prevent a collision*
+- *frequent verification of the existence of a short URL in the database is a bottleneck*
+
+#### Hashing Function
+The KGS queries the hashing function service to shorten a URL. The hashing function service accepts a long URL as an input and executes a hash function such as the message-digest algorithm (MD5) to generate a short URL. The length of the MD5 hash function output is 128 bits.
+
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-hashing-long-url.webp" />
+
+The hashing function service is replicated to meet the scalability demand of the system. Instances of this service should not be load-balanced by hashing algorithms (for eg. consistent hashing) because it'll overload one server if the same long URL is entered by a large number of clients at the same time.
+Use **round-robin, least connection, least bandwidth**
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-hashing-function-service.webp" />
+
+*The base62 encoding of MD5 output yields 22 characters because each base62 encoded character consumes 6 bits and MD5 output is 128 bits. The encoded output must be truncated by considering only the first 7 characters (42 bits) to keep the short URL readable. However, the encoded output of multiple long URLs might yield the same prefix (first 7 characters), resulting in a collision. Random bits are appended to the suffix of the encoded output to make it nonpredictable at the expense of short URL readability.*
+
+#### Token Range
+The KGS queries the token service to shorten a URL. An internal counter function of the token service generates the short URL and the output is monotonically increasing.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-token-service-consistent-hash-ring.webp" />
+
+The output of the token service instances (distributed system) must be non-overlapping to prevent a collision. A highly reliable distributed service such as Apache Zookeeper or Amazon DynamoDB is used to coordinate the output range of token service instances. The service that coordinates the output range between token service instances is named the token range service. Stronger consistency prevents a range collision by preventing fetching the same output range by multiple token services.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-token-range-service.webp" />
+
+The token range service might become a bottleneck if queried frequently. Either the output range or the number of token range service replicas must be incremented to improve the reliability of the system. The token range solution is collision-free and scalable.
+
+The time complexity of short URL generation using token service is constant O(1). In contrast, the KGS must perform one of the following operations before shortening a URL to preserve the 1-to-1 mapping:
+- query the database to check the existence of the long URL
+- use the putIfAbsent procedure to check the existence of the long URL
+Querying the database is an expensive operation because of the disk input/output (I/O) and most of the NoSQL data stores do not support the putIfAbsent procedure due to eventual consistency.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-bloom-filter.webp" />
+
+**A bloom filter is used to prevent expensive data store lookups on URL shortening. The time complexity of a bloom filter query is constant O(1). The KGS populates the bloom filter with the long URL after shortening the long URL. When the client enters a customized URL, the KGS queries the bloom filter to check if the long URL exists before persisting the custom short URL into the data store.**
+
+When the client enters an already existing long URL, the KGS must return the appropriate short URL **but** the database is partitioned with the short URL as the partition key. The short URL as the partition key resonates with the read and write paths of the URL shortener.
+
+A naive solution to finding the short URL is to build an index on the long URL column of the data store. However, the introduction of a database index degrades the write performance and querying remains complex due to sharding using the short URL key.
+
+The optimal solution is to introduce an additional data store (inverted index) with mapping from the long URLs to the short URLs (key-value schema). The additional data store improves the time complexity of finding the short URL of an already existing long URL record. On the other hand, an additional data store increases storage costs. The additional data store is partitioned using consistent hashing. The partition key is the long URL to quickly find the URL record. A key-value store such as DynamoDB is used as the additional data store.
+<img src="https://systemdesign.one/url-shortening-system-design/url-shortener-inverted-index-store.webp" />
+
+### Read path (getting a shortened url)
