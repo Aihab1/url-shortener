@@ -112,3 +112,21 @@ The optimal solution is to introduce an additional data store (inverted index) w
 <img src="https://systemdesign.one/url-shortening-system-design/url-shortener-inverted-index-store.webp" />
 
 ### Read path (getting a shortened url)
+The server redirects the shortened URL to the original long URL. The simplified block diagram of a single-machine URL redirection is the following:
+<img src="https://systemdesign.one/url-shortening-system-design/simplified-url-shortener.webp" />
+
+The single-machine solution does not meet the scalability requirements of URL redirection for a read-heavy system. The disk I/O due to frequent database access is a potential bottleneck.
+
+The URL redirection traffic (Egress) is cached following the 80/20 rule to improve latency. The cache stores the mapping between the short URLs and the long URLs. The cache handles uneven traffic and traffic spikes in URL redirection. The server must query the cache before hitting the data store. The cache-aside pattern is used to update the cache. When a cache miss occurs, the server queries the data store and populates the cache. The tradeoff of using the cache-aside pattern is the delay in initial requests. As the data stored in the cache is memory bound, the Least Recently Used (LRU) policy is used to evict the cache when the cache server is full.
+
+<img src="https://systemdesign.one/url-shortening-system-design/url-redirection-caching-different-layers.webp" />
+The cache and the data store must not be queried if the short URL does not exist. A bloom filter on the short URL is introduced to prevent unnecessary queries. If the short URL is absent in the bloom filter, return an HTTP status code of 404. If the short URL is set in the bloom filter, delegate the redirection request to the cache server or the data store.
+
+The cache servers are scaled out by performing the following operations:
+- partition the cache servers (use the short URL as the partition key)
+- replicate the cache servers to handle heavy loads using leader-follower topology
+- redirect the write operations to the leader
+- redirect all the read operations to the follower replicas
+<img src="https://systemdesign.one/url-shortening-system-design/url-redirection-scaling-cache-servers.webp" />
+
+This design has been heavily taken and understood from <a href="https://systemdesign.one/url-shortening-system-design/" target="_blank">systemdesign.one</a>. Please visit the source for a more deep dive into design, its functional and non-functional components.
